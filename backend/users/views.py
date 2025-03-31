@@ -28,6 +28,7 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserDetailSerializer
     permission_classes = [IsAdminUser]
+    
 
     @action(detail=True, methods=['post'])
     def set_groups(self, request, pk=None):
