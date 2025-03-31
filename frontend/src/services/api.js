@@ -37,7 +37,8 @@ export const userService = {
     update: (id, data) => api.patch(`/users/${id}/`, data),
     delete: (id) => api.delete(`/users/${id}/`),
     setGroups: (id, groups) => api.post(`/users/${id}/set_groups/`, { groups }),
-    setPermissions: (id, permissions) => api.post(`/users/${id}/set_permissions/`, { permissions })
+    setPermissions: (id, permissions) => api.post(`/users/${id}/set_permissions/`, { permissions }),
+    setPassword: (id, password) => api.post(`/users/${id}/set_password/`, { password }) // New method
 };
 
 export const groupService = {

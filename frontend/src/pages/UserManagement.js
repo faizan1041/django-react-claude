@@ -14,6 +14,7 @@ const UserManagement = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
   const [successMessage, setSuccessMessage] = useState('');
+  const [showPasswordFields, setShowPasswordFields] = useState(false);
 
   // Fetch users and groups on component mount
   useEffect(() => {
@@ -24,14 +25,8 @@ const UserManagement = () => {
           userService.getAll(),
           groupService.getAll()
         ]);
-        
-        // Ensure we're getting an array for users and groups
-        setUsers(Array.isArray(usersResponse.data) ? usersResponse.data : []);
-        setGroups(Array.isArray(groupsResponse.data) ? groupsResponse.data : []);
-        
-        // Debug logs - remove in production
-        console.log('Users response:', usersResponse);
-        console.log('Groups response:', groupsResponse);
+        setUsers(usersResponse.data);
+        setGroups(groupsResponse.data);
       } catch (err) {
         setError('Failed to load data. Please try again.');
         console.error('Error fetching data:', err);
@@ -101,7 +96,9 @@ const UserManagement = () => {
       last_name: '',
       is_active: true,
       is_staff: false,
-      groups: []
+      groups: [],
+      password: '',
+      confirm_password: '' 
     },
     validationSchema: Yup.object({
       email: Yup.string().email('Invalid email address').required('Required'),
@@ -109,8 +106,18 @@ const UserManagement = () => {
       last_name: Yup.string().required('Required'),
       is_active: Yup.boolean(),
       is_staff: Yup.boolean(),
-      groups: Yup.array().of(Yup.number())
+      groups: Yup.array().of(Yup.number()),
+      password: Yup.string().when('$showPasswordFields', {
+        is: true,
+        then: Yup.string().min(8, 'Password must be at least 8 characters').required('Required')
+      }),
+      confirm_password: Yup.string().when('$showPasswordFields', {
+        is: true,
+        then: Yup.string().oneOf([Yup.ref('password'), null], 'Passwords must match').required('Required')
+      })
     }),
+    validateOnChange: true,
+    validateOnBlur: true,
     onSubmit: async (values) => {
       try {
         // Update user details
@@ -121,6 +128,11 @@ const UserManagement = () => {
           is_active: values.is_active,
           is_staff: values.is_staff
         });
+        
+        // Set password if password fields are shown and password is provided
+        if (showPasswordFields && values.password) {
+          await userService.setPassword(values.id, values.password);
+        }
         
         // Update user groups
         await userService.setGroups(values.id, values.groups);
@@ -135,6 +147,7 @@ const UserManagement = () => {
         setUsers(updatedUsers);
         setIsEditing(false);
         setCurrentUser(null);
+        setShowPasswordFields(false); // Reset password toggle
         showSuccess('User updated successfully');
       } catch (err) {
         setError(err.response?.data || { detail: 'Failed to update user' });
@@ -145,6 +158,7 @@ const UserManagement = () => {
   // Handle edit user button click
   const handleEditUser = (user) => {
     setCurrentUser(user);
+    setShowPasswordFields(false); // Reset password toggle
     editUserForm.resetForm({
       values: {
         id: user.id,
@@ -153,7 +167,9 @@ const UserManagement = () => {
         last_name: user.last_name,
         is_active: user.is_active,
         is_staff: user.is_staff,
-        groups: user.groups ? user.groups.map(g => g.id) : []
+        groups: user.groups ? user.groups.map(g => g.id) : [],
+        password: '',  // Reset password
+        confirm_password: ''  // Reset confirm password
       }
     });
     setIsEditing(true);
@@ -393,7 +409,7 @@ const UserManagement = () => {
               <div className="col-span-6">
                 <label className="form-label">Groups</label>
                 <div className="mt-2 space-y-2">
-                  {Array.isArray(groups) && groups.map((group) => (
+                  {groups.map((group) => (
                     <div key={group.id} className="flex items-center">
                       <input
                         id={`group-${group.id}`}
@@ -528,10 +544,72 @@ const UserManagement = () => {
                 </div>
               </div>
               
+              {/* Password change section */}
+              <div className="col-span-6 border-t border-gray-200 pt-4 mt-4">
+                <div className="flex items-center">
+                  <input
+                    id="show_password_fields"
+                    name="show_password_fields"
+                    type="checkbox"
+                    className="h-4 w-4 text-blue-600 border-gray-300 rounded"
+                    checked={showPasswordFields}
+                    onChange={() => setShowPasswordFields(!showPasswordFields)}
+                  />
+                  <label htmlFor="show_password_fields" className="ml-2 block text-sm text-gray-900">
+                    Change user's password
+                  </label>
+                </div>
+              </div>
+
+              {/* Password fields - only shown when showPasswordFields is true */}
+              {showPasswordFields && (
+                <div className="col-span-6 grid grid-cols-6 gap-6 mt-4">
+                  <div className="col-span-6 sm:col-span-3">
+                    <label htmlFor="password" className="form-label">
+                      New Password
+                    </label>
+                    <input
+                      type="password"
+                      name="password"
+                      id="password"
+                      className={`form-input ${
+                        editUserForm.touched.password && editUserForm.errors.password ? 'border-red-500' : ''
+                      }`}
+                      value={editUserForm.values.password}
+                      onChange={editUserForm.handleChange}
+                      onBlur={editUserForm.handleBlur}
+                    />
+                    {editUserForm.touched.password && editUserForm.errors.password && (
+                      <div className="form-error">{editUserForm.errors.password}</div>
+                    )}
+                  </div>
+                  
+                  <div className="col-span-6 sm:col-span-3">
+                    <label htmlFor="confirm_password" className="form-label">
+                      Confirm Password
+                    </label>
+                    <input
+                      type="password"
+                      name="confirm_password"
+                      id="confirm_password"
+                      className={`form-input ${
+                        editUserForm.touched.confirm_password && editUserForm.errors.confirm_password ? 'border-red-500' : ''
+                      }`}
+                      value={editUserForm.values.confirm_password}
+                      onChange={editUserForm.handleChange}
+                      onBlur={editUserForm.handleBlur}
+                    />
+                    {editUserForm.touched.confirm_password && editUserForm.errors.confirm_password && (
+                      <div className="form-error">{editUserForm.errors.confirm_password}</div>
+                    )}
+                  </div>
+                </div>
+              )}
+              
               <div className="col-span-6">
                 <label className="form-label">Groups</label>
                 <div className="mt-2 space-y-2">
-                  {Array.isArray(groups) && groups.map((group) => (
+                  {groups.map((group) => (
                     <div key={group.id} className="flex items-center">
                       <input
                         id={`edit-group-${group.id}`}
@@ -566,6 +644,7 @@ const UserManagement = () => {
                 onClick={() => {
                   setIsEditing(false);
                   setCurrentUser(null);
+                  setShowPasswordFields(false);
                 }}
                 className="btn btn-secondary"
               >
@@ -606,7 +685,7 @@ const UserManagement = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {!Array.isArray(users) || users.length === 0 ? (
+              {users.length === 0 ? (
                 <tr>
                   <td colSpan="6" className="px-6 py-4 text-center text-sm text-gray-500">
                     No users found
@@ -634,7 +713,7 @@ const UserManagement = () => {
                       {user.is_staff ? 'Administrator' : 'Regular User'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {Array.isArray(user.groups) && user.groups.length > 0 ? (
+                      {user.groups && user.groups.length > 0 ? (
                         <div className="flex flex-wrap gap-1">
                           {user.groups.map((group) => (
                             <span key={group.id} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">

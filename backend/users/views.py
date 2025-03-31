@@ -28,6 +28,19 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserDetailSerializer
     permission_classes = [IsAdminUser]
+
+    @action(detail=True, methods=['post'])
+    def set_password(self, request, pk=None):
+        user = self.get_object()
+        password = request.data.get('password')
+        
+        if not password:
+            return Response({'error': 'Password is required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        user.set_password(password)
+        user.save()
+        
+        return Response({'status': 'password set'})
     
 
     @action(detail=True, methods=['post'])
