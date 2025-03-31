@@ -4,6 +4,8 @@ Repository: [https://github.com/faizan1041/django-react-claude](https://github.c
 
 A full-stack boilerplate application with complete user management functionality including authentication, permissions, and group management.
 
+![Dashboard Screenshot](https://github.com/faizan1041/django-react-claude/raw/main/screenshots/dashboard.png)
+
 ## Features
 
 - **User Authentication**
@@ -16,6 +18,7 @@ A full-stack boilerplate application with complete user management functionality
   - Create, read, update, delete users
   - User activation/deactivation
   - Profile management
+  - Admin password management
 
 - **Permissions System**
   - Role-based access control
@@ -90,12 +93,12 @@ project-root/
 
 2. Start the application with Docker Compose
    ```bash
-   docker-compose up
+   docker compose up
    ```
 
 3. Create a superuser for the Django admin
    ```bash
-   docker-compose exec backend python manage.py createsuperuser
+   docker compose exec backend python manage.py createsuperuser
    ```
 
 4. Access the application
@@ -111,10 +114,10 @@ project-root/
 3. Run tests to ensure code quality
    ```bash
    # Backend tests
-   docker-compose exec backend python manage.py test
+   docker compose exec backend python manage.py test
 
    # Frontend tests
-   docker-compose exec frontend npm test
+   docker compose exec frontend npm test
    ```
 
 ## API Endpoints
@@ -134,6 +137,7 @@ project-root/
 - `DELETE /api/users/{id}/` - Delete user (admin only)
 - `POST /api/users/{id}/set_groups/` - Set user groups (admin only)
 - `POST /api/users/{id}/set_permissions/` - Set user permissions (admin only)
+- `POST /api/users/{id}/set_password/` - Set user password (admin only)
 
 ### Group Management
 - `GET /api/users/groups/` - List groups (admin only)
