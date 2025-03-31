@@ -24,8 +24,14 @@ const UserManagement = () => {
           userService.getAll(),
           groupService.getAll()
         ]);
-        setUsers(usersResponse.data);
-        setGroups(groupsResponse.data);
+        
+        // Ensure we're getting an array for users and groups
+        setUsers(Array.isArray(usersResponse.data) ? usersResponse.data : []);
+        setGroups(Array.isArray(groupsResponse.data) ? groupsResponse.data : []);
+        
+        // Debug logs - remove in production
+        console.log('Users response:', usersResponse);
+        console.log('Groups response:', groupsResponse);
       } catch (err) {
         setError('Failed to load data. Please try again.');
         console.error('Error fetching data:', err);
@@ -387,7 +393,7 @@ const UserManagement = () => {
               <div className="col-span-6">
                 <label className="form-label">Groups</label>
                 <div className="mt-2 space-y-2">
-                  {groups.map((group) => (
+                  {Array.isArray(groups) && groups.map((group) => (
                     <div key={group.id} className="flex items-center">
                       <input
                         id={`group-${group.id}`}
@@ -525,7 +531,7 @@ const UserManagement = () => {
               <div className="col-span-6">
                 <label className="form-label">Groups</label>
                 <div className="mt-2 space-y-2">
-                  {groups.map((group) => (
+                  {Array.isArray(groups) && groups.map((group) => (
                     <div key={group.id} className="flex items-center">
                       <input
                         id={`edit-group-${group.id}`}
@@ -600,7 +606,7 @@ const UserManagement = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {users.length === 0 ? (
+              {!Array.isArray(users) || users.length === 0 ? (
                 <tr>
                   <td colSpan="6" className="px-6 py-4 text-center text-sm text-gray-500">
                     No users found
@@ -628,7 +634,7 @@ const UserManagement = () => {
                       {user.is_staff ? 'Administrator' : 'Regular User'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {user.groups && user.groups.length > 0 ? (
+                      {Array.isArray(user.groups) && user.groups.length > 0 ? (
                         <div className="flex flex-wrap gap-1">
                           {user.groups.map((group) => (
                             <span key={group.id} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
