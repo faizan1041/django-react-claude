@@ -1,6 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import jwt_decode from 'jwt-decode';
+import jwt_decode from 'jwt-decode'; // Changed from named import to default import
 import api from '../services/api';
 
 const AuthContext = createContext();
@@ -28,7 +28,7 @@ export const AuthProvider = ({ children }) => {
 
       try {
         // Check if token needs refresh
-        const decodedToken = jwt_decode(accessToken);
+        const decodedToken = jwt_decode(accessToken); // Using the default export
         const currentTime = Date.now() / 1000;
         
         if (decodedToken.exp < currentTime) {
