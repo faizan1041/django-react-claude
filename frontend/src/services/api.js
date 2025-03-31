@@ -21,27 +21,36 @@ api.interceptors.request.use(
   }
 );
 
+export const authService = {
+  login: (email, password) => api.post('/auth/jwt/create/', { email, password }),
+  register: (userData) => api.post('/auth/users/', userData),
+  getProfile: () => api.get('/auth/users/me/'),
+  updateProfile: (data) => api.patch('/auth/users/me/', data),
+  changePassword: (passwords) => api.post('/auth/users/set_password/', passwords),
+  refreshToken: (refresh) => api.post('/auth/jwt/refresh/', { refresh }),
+};
+
 export const userService = {
-  getAll: () => api.get('/users/'),
-  getById: (id) => api.get(`/users/${id}/`),
-  create: (data) => api.post('/users/', data),
-  update: (id, data) => api.patch(`/users/${id}/`, data),
-  delete: (id) => api.delete(`/users/${id}/`),
-  setGroups: (id, groups) => api.post(`/users/${id}/set_groups/`, { groups }),
-  setPermissions: (id, permissions) => api.post(`/users/${id}/set_permissions/`, { permissions })
+    getAll: () => api.get('/users/'),
+    getById: (id) => api.get(`/users/${id}/`),
+    create: (data) => api.post('/users/', data),
+    update: (id, data) => api.patch(`/users/${id}/`, data),
+    delete: (id) => api.delete(`/users/${id}/`),
+    setGroups: (id, groups) => api.post(`/users/${id}/set_groups/`, { groups }),
+    setPermissions: (id, permissions) => api.post(`/users/${id}/set_permissions/`, { permissions })
 };
 
 export const groupService = {
-  getAll: () => api.get('/users/groups/'),
-  getById: (id) => api.get(`/users/groups/${id}/`),
-  create: (data) => api.post('/users/groups/', data),
-  update: (id, data) => api.patch(`/users/groups/${id}/`, data),
-  delete: (id) => api.delete(`/users/groups/${id}/`),
-  setPermissions: (id, permissions) => api.post(`/users/groups/${id}/set_permissions/`, { permissions })
+    getAll: () => api.get('/groups/'),
+    getById: (id) => api.get(`/groups/${id}/`),
+    create: (data) => api.post('/groups/', data),
+    update: (id, data) => api.patch(`/groups/${id}/`, data),
+    delete: (id) => api.delete(`/groups/${id}/`),
+    setPermissions: (id, permissions) => api.post(`/groups/${id}/set_permissions/`, { permissions })
 };
 
 export const permissionService = {
-  getAll: () => api.get('/users/permissions/'),
+  getAll: () => api.get('/permissions/'),
 };
 
 export default api;

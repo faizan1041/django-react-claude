@@ -1,7 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import jwt_decode from 'jwt-decode'; // Changed from named import to default import
-import api from '../services/api';
+import jwt_decode from 'jwt-decode';
+import api, { authService } from '../services/api';
 
 const AuthContext = createContext();
 
@@ -28,7 +28,7 @@ export const AuthProvider = ({ children }) => {
 
       try {
         // Check if token needs refresh
-        const decodedToken = jwt_decode(accessToken); // Using the default export
+        const decodedToken = jwt_decode(accessToken);
         const currentTime = Date.now() / 1000;
         
         if (decodedToken.exp < currentTime) {
@@ -49,11 +49,7 @@ export const AuthProvider = ({ children }) => {
 
   const fetchUserProfile = async (token) => {
     try {
-      const response = await api.get('/auth/users/me/', {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
+      const response = await authService.getProfile();
       setUser(response.data);
     } catch (error) {
       throw error;
@@ -63,7 +59,7 @@ export const AuthProvider = ({ children }) => {
   const refreshAccessToken = async () => {
     try {
       const refreshToken = localStorage.getItem('refreshToken');
-      const response = await api.post('/auth/jwt/refresh/', { refresh: refreshToken });
+      const response = await authService.refreshToken(refreshToken);
       localStorage.setItem('accessToken', response.data.access);
       await fetchUserProfile(response.data.access);
     } catch (error) {
@@ -74,7 +70,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     setError(null);
     try {
-      const response = await api.post('/auth/jwt/create/', { email, password });
+      const response = await authService.login(email, password);
       localStorage.setItem('accessToken', response.data.access);
       localStorage.setItem('refreshToken', response.data.refresh);
       await fetchUserProfile(response.data.access);
@@ -88,7 +84,7 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     setError(null);
     try {
-      await api.post('/auth/users/', userData);
+      await authService.register(userData);
       return true;
     } catch (error) {
       setError(error.response?.data || { detail: 'Registration failed. Please try again.' });

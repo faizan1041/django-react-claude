@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import api from '../services/api';
+import { authService } from '../services/api';
 
 const Profile = () => {
   const { user, refreshAccessToken } = useAuth();
@@ -44,15 +44,15 @@ const Profile = () => {
       setError(null);
       
       try {
-        // First update user profile (email, name)
-        await api.patch('/auth/users/me/', {
+        // First update user profile (name)
+        await authService.updateProfile({
           first_name: values.first_name,
           last_name: values.last_name,
         });
         
         // Handle password change if new password is provided
         if (values.new_password) {
-          await api.post('/auth/users/set_password/', {
+          await authService.changePassword({
             current_password: values.current_password,
             new_password: values.new_password,
             re_new_password: values.re_new_password,
